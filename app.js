@@ -4,6 +4,10 @@ const $ = id => document.getElementById(id);
 const KEY = "tlbb-ai-manager-bank-v1";
 let bank = [];
 let selectedImageUrl = "";
+let ocrWorker = null;
+let workerLanguage = "";
+let ocrBusy = false;
+
 try {
   const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
   bank = Array.isArray(saved) ? saved.filter(x => x && x.question && x.answer) : [];
@@ -15,24 +19,21 @@ function norm(s) {
     .replace(/đ/g, "d").replace(/[^\p{L}\p{N} ]/gu, " ")
     .replace(/\s+/g, " ").trim();
 }
-function tokens(s) {
-  return norm(s).split(" ").filter(w => w.length > 1);
-}
+function tokens(s) { return norm(s).split(" ").filter(w => w.length > 1); }
 function similarity(a, b) {
   const A = new Set(tokens(a)), B = new Set(tokens(b));
   if (!A.size || !B.size) return 0;
   let intersection = 0;
   A.forEach(x => { if (B.has(x)) intersection++; });
-  const dice = (2 * intersection) / (A.size + B.size);
-  const coverage = intersection / Math.min(A.size, B.size);
-  return Math.max(dice, coverage * 0.82);
+  return Math.max((2 * intersection) / (A.size + B.size),
+                  (intersection / Math.min(A.size, B.size)) * 0.82);
 }
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify(bank));
     $("questionStat").textContent = bank.length;
     render();
-  } catch (e) {
+  } catch (_) {
     $("ocrMessage").textContent = "Không thể lưu dữ liệu. Bộ nhớ trình duyệt có thể đã đầy.";
   }
 }
@@ -81,70 +82,149 @@ $("saveQuestionBtn").onclick = () => {
   save(); $("ocrMessage").textContent = "Đã lưu câu hỏi.";
 };
 $("bankSearch").oninput = render;
+
 $("imageInput").onchange = e => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(f.type)) {
+    $("ocrMessage").textContent = "Định dạng chưa hỗ trợ. Hãy chọn PNG, JPG hoặc WEBP."; return;
+  }
+  if (f.size > 12 * 1024 * 1024) {
+    $("ocrMessage").textContent = "Ảnh lớn hơn 12 MB. Hãy cắt nhỏ hoặc nén ảnh rồi thử lại."; return;
+  }
   if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
   selectedImageUrl = URL.createObjectURL(f);
   $("preview").src = selectedImageUrl; $("preview").hidden = false;
   $("previewEmpty").hidden = true;
-  $("ocrMessage").textContent = "Đã chọn ảnh. Nhấn Chạy OCR ảnh.";
+  $("ocrConfidence").textContent = "Độ tin cậy OCR: --";
+  $("ocrDuration").textContent = "";
+  $("ocrMessage").textContent = "Đã chọn ảnh. Có thể chạy OCR nâng cao.";
 };
-function preprocess(file) {
+
+function loadImage(source) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      try {
-        const scale = Math.min(2.5, Math.max(1, 1600 / img.width));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < data.data.length; i += 4) {
-          const gray = 0.299 * data.data[i] + 0.587 * data.data[i+1] + 0.114 * data.data[i+2];
-          const contrast = Math.max(0, Math.min(255, (gray - 128) * 1.35 + 128));
-          data.data[i] = data.data[i+1] = data.data[i+2] = contrast;
-        }
-        ctx.putImageData(data, 0, 0);
-        canvas.toBlob(blob => {
-          URL.revokeObjectURL(url);
-          if (blob) resolve(blob); else reject(new Error("Không xử lý được ảnh."));
-        }, "image/png");
-      } catch (err) { URL.revokeObjectURL(url); reject(err); }
-    };
+    const url = source instanceof Blob ? URL.createObjectURL(source) : source;
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Không đọc được ảnh.")); };
     img.src = url;
   });
 }
+async function makeVariant(file, mode) {
+  const img = await loadImage(file);
+  const maxSide = 2200;
+  const scale = Math.min(3, Math.max(1, maxSide / Math.max(img.width, img.height)));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(img.width * scale));
+  canvas.height = Math.max(1, Math.round(img.height * scale));
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  if (mode !== "original") {
+    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const px = frame.data;
+    // Luminance and contrast enhancement. Preserve dark/light polarity for game UI.
+    const values = [];
+    for (let i = 0; i < px.length; i += 4) {
+      const gray = 0.2126 * px[i] + 0.7152 * px[i+1] + 0.0722 * px[i+2];
+      values.push(gray);
+    }
+    let min = 255, max = 0;
+    for (const v of values) { if (v < min) min = v; if (v > max) max = v; }
+    const range = Math.max(40, max - min);
+    for (let p = 0, j = 0; p < px.length; p += 4, j++) {
+      let v = (values[j] - min) * (255 / range);
+      if (mode === "threshold") v = v >= 145 ? 255 : 0;
+      px[p] = px[p+1] = px[p+2] = v;
+      px[p+3] = 255;
+    }
+    ctx.putImageData(frame, 0, 0);
+  }
+  return await new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Không xử lý được ảnh.")), "image/png");
+  });
+}
+async function getWorker(lang) {
+  if (!window.Tesseract) throw new Error("Thư viện OCR chưa tải. Kiểm tra Internet và tải lại trang.");
+  if (ocrWorker && workerLanguage === lang) return ocrWorker;
+  if (ocrWorker) { await ocrWorker.terminate(); ocrWorker = null; workerLanguage = ""; }
+  $("ocrMessage").textContent = "Đang khởi tạo OCR và tải dữ liệu ngôn ngữ...";
+  // Tesseract.js v5: worker initializes the requested language during creation.
+  ocrWorker = await Tesseract.createWorker(lang, 1, {
+    logger: m => {
+      if (m.status) {
+        const pct = m.progress != null ? " · " + Math.round(m.progress * 100) + "%" : "";
+        $("ocrMessage").textContent = "OCR: " + m.status + pct;
+      }
+    }
+  });
+  workerLanguage = lang;
+  return ocrWorker;
+}
+function psmValue(mode) {
+  if (mode === "block") return "6";
+  if (mode === "sparse") return "11";
+  if (mode === "line") return "7";
+  return "6";
+}
 $("runOcrBtn").onclick = async () => {
   const file = $("imageInput").files && $("imageInput").files[0];
   if (!file) { $("ocrMessage").textContent = "Hãy chọn ảnh trước."; return; }
-  if (!window.Tesseract) { $("ocrMessage").textContent = "Không tải được thư viện OCR. Kiểm tra kết nối Internet rồi tải lại trang."; return; }
-  const btn = $("runOcrBtn"); btn.disabled = true; $("ocrStat").textContent = "Đang chạy";
+  if (ocrBusy) return;
+  ocrBusy = true;
+  const btn = $("runOcrBtn");
+  btn.disabled = true;
+  $("ocrStat").textContent = "Đang chạy";
+  $("ocrConfidence").textContent = "Độ tin cậy OCR: đang xử lý...";
+  const started = performance.now();
   try {
-    let input = file;
-    if ($("preprocessToggle").checked) {
-      $("ocrMessage").textContent = "Đang tăng kích thước và tương phản ảnh...";
-      input = await preprocess(file);
-    }
     const lang = $("ocrLang").value;
-    $("ocrMessage").textContent = "Đang tải dữ liệu ngôn ngữ OCR...";
-    const result = await Tesseract.recognize(input, lang, {
-      logger: m => {
-        if (m.status) $("ocrMessage").textContent = m.status + (m.progress != null ? " · " + Math.round(m.progress * 100) + "%" : "");
+    const mode = $("ocrMode").value;
+    const psm = $("psmMode").value;
+    const worker = await getWorker(lang);
+    const variants = mode === "auto" ? ["enhance", "threshold", "original"] : [mode];
+    const psmList = psm === "auto" ? ["6", "11"] : [psmValue(psm)];
+    let best = null, attempts = 0;
+    const total = variants.length * psmList.length;
+    for (const variant of variants) {
+      const image = await makeVariant(file, variant);
+      for (const pageMode of psmList) {
+        attempts++;
+        $("ocrMessage").textContent = `Đang nhận diện ${attempts}/${total}: ${variant === "enhance" ? "tăng tương phản" : variant === "threshold" ? "đen trắng" : "ảnh gốc"}...`;
+        await worker.setParameters({
+          tessedit_pageseg_mode: pageMode,
+          preserve_interword_spaces: "1"
+        });
+        const result = await worker.recognize(image);
+        const text = (result.data.text || "").trim();
+        const confidence = Number(result.data.confidence || 0);
+        const quality = confidence + Math.min(text.length, 500) / 100;
+        if (text && (!best || quality > best.quality)) {
+          best = { text, confidence, quality, variant, pageMode };
+        }
+        if (best && best.confidence >= 88 && best.text.length > 12) break;
       }
-    });
-    $("ocrText").value = (result.data.text || "").trim();
-    $("ocrMessage").textContent = $("ocrText").value ? "OCR hoàn tất. Hãy kiểm tra và sửa chữ sai trước khi tra cứu." : "OCR chưa đọc được chữ. Hãy thử ảnh rõ hơn hoặc bỏ chọn tăng tương phản.";
+      if (best && best.confidence >= 88 && best.text.length > 12) break;
+    }
+    if (best) {
+      $("ocrText").value = best.text;
+      $("ocrConfidence").textContent = "Độ tin cậy OCR: " + Math.round(best.confidence) + "%";
+      $("ocrMessage").textContent = `Hoàn tất · ${best.variant} · chế độ chữ ${best.pageMode}. Vui lòng soát lại dấu và ký tự trước khi tra cứu.`;
+    } else {
+      $("ocrText").value = "";
+      $("ocrConfidence").textContent = "Độ tin cậy OCR: --";
+      $("ocrMessage").textContent = "Không nhận diện được chữ. Hãy chọn ảnh rõ hơn hoặc cắt sát khung hội thoại.";
+    }
+    $("ocrDuration").textContent = ((performance.now() - started) / 1000).toFixed(1) + " giây";
     $("ocrStat").textContent = "Sẵn sàng";
   } catch (e) {
-    $("ocrMessage").textContent = "OCR lỗi: " + (e.message || e);
+    $("ocrMessage").textContent = "OCR gặp lỗi: " + (e && e.message ? e.message : String(e));
     $("ocrStat").textContent = "Có lỗi";
-  } finally { btn.disabled = false; }
+  } finally {
+    btn.disabled = false;
+    ocrBusy = false;
+  }
 };
+
 $("searchBtn").onclick = () => {
   const q = $("ocrText").value.trim();
   if (!q) { $("ocrMessage").textContent = "Hãy nhập hoặc nhận diện câu hỏi trước."; return; }
@@ -158,7 +238,7 @@ $("searchBtn").onclick = () => {
   $("meterFill").style.width = Math.round(sc * 100) + "%";
   if (best && sc >= 0.28) {
     $("answerText").textContent = best.answer;
-    $("answerNote").textContent = "Câu gần nhất: " + best.question + " · NPC: " + (best.npc || "Không rõ") + ". Đây là điểm tương đồng văn bản, không phải xác suất đáp án đúng.";
+    $("answerNote").textContent = "Câu gần nhất: " + best.question + " · NPC: " + (best.npc || "Không rõ") + ". Điểm này là độ tương đồng văn bản, không phải xác suất đáp án đúng.";
   } else {
     $("answerText").textContent = "Chưa tìm thấy đáp án phù hợp";
     $("answerNote").textContent = "Hãy kiểm tra lại OCR hoặc bổ sung câu hỏi vào ngân hàng local.";
@@ -187,6 +267,10 @@ $("importFile").onchange = async e => {
   } catch (_) { alert("Tệp JSON không hợp lệ hoặc sai cấu trúc."); }
   e.target.value = "";
 };
+window.addEventListener("beforeunload", () => {
+  if (ocrWorker) ocrWorker.terminate();
+  if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
+});
 $("questionStat").textContent = bank.length;
 render();
 })();
