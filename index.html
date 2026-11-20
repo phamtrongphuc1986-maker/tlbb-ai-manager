@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
-<title>TLBB AI Manager V1.1</title>
+<title>TLBB AI Manager V1.2</title>
 <link rel="stylesheet" href="style.css">
 <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script defer src="app.js"></script>
@@ -12,7 +12,7 @@
 <body>
 <div class="shell">
 <header>
-  <div class="brand"><b>武 TLBB AI Manager</b><small>LOCAL ASSISTANT · WINDOWS 10 · V1.1</small></div>
+  <div class="brand"><b>武 TLBB AI Manager</b><small>LOCAL ASSISTANT · WINDOWS 10 · V1.2</small></div>
   <button id="exportBtn">Xuất dữ liệu</button>
 </header>
 <nav><a href="#accounts">Tài khoản</a><a href="#ocr">OCR & câu hỏi</a><a href="#bank">Ngân hàng câu hỏi</a></nav>
@@ -33,18 +33,25 @@
 </section>
 <div class="work-grid">
 <section class="panel" id="ocr">
-  <h2>Nhận diện câu hỏi NPC (OCR)</h2>
-  <label class="upload" for="imageInput">＋ Chọn ảnh chụp hội thoại NPC<small>PNG, JPG · xử lý trong trình duyệt</small></label>
-  <input id="imageInput" type="file" accept="image/*" hidden>
+  <h2>Nhận diện câu hỏi NPC (OCR) · V1.2</h2>
+  <label class="upload" for="imageInput">＋ Chọn ảnh chụp hội thoại NPC<small>PNG, JPG, WEBP · xử lý trong trình duyệt</small></label>
+  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
   <div class="preview"><img id="preview" hidden><span id="previewEmpty">Chưa chọn ảnh</span></div>
   <div class="ocr-options">
-    <label for="ocrLang">Ngôn ngữ OCR</label>
-    <select id="ocrLang"><option value="vie+eng">Tiếng Việt + English</option><option value="vie">Tiếng Việt</option><option value="eng">English</option></select>
-    <label class="check"><input id="preprocessToggle" type="checkbox" checked> Tăng tương phản ảnh trước khi nhận diện</label>
+    <label for="ocrLang">Ngôn ngữ</label>
+    <select id="ocrLang"><option value="vie">Tiếng Việt (khuyên dùng)</option><option value="vie+eng">Tiếng Việt + English</option><option value="eng">English</option></select>
   </div>
-  <textarea id="ocrText" rows="5" placeholder="Văn bản OCR hoặc dán câu hỏi vào đây..."></textarea>
-  <div class="actions"><button id="runOcrBtn">Chạy OCR ảnh</button><button id="searchBtn" class="primary">Tra cứu đáp án</button></div>
-  <p id="ocrMessage" class="hint">Kiểm tra lại văn bản OCR trước khi tra cứu.</p>
+  <div class="ocr-options">
+    <label for="ocrMode">Xử lý ảnh</label>
+    <select id="ocrMode"><option value="auto">Tự động thử nhiều kiểu (khuyên dùng)</option><option value="enhance">Tăng tương phản / thang xám</option><option value="threshold">Đen trắng rõ nét</option><option value="original">Ảnh gốc</option></select>
+    <label for="psmMode">Bố cục chữ</label>
+    <select id="psmMode"><option value="auto">Tự động (khuyên dùng)</option><option value="block">Một khối hội thoại</option><option value="sparse">Nhiều vùng chữ rời</option><option value="line">Một dòng chữ</option></select>
+  </div>
+  <div class="ocr-tips"><b>Mẹo chụp ảnh:</b> phóng to khung hội thoại, chụp thẳng, đủ sáng, không cắt mất dấu tiếng Việt. Nếu chữ nền tối, thử chế độ Tự động.</div>
+  <textarea id="ocrText" rows="6" placeholder="Văn bản OCR hoặc dán câu hỏi vào đây..."></textarea>
+  <div class="ocr-meta"><span id="ocrConfidence">Độ tin cậy OCR: --</span><span id="ocrDuration"></span></div>
+  <div class="actions"><button id="runOcrBtn">Chạy OCR nâng cao</button><button id="searchBtn" class="primary">Tra cứu đáp án</button></div>
+  <p id="ocrMessage" class="hint">OCR sẽ thử các cách xử lý ảnh phù hợp. Luôn kiểm tra và sửa văn bản trước khi tra cứu.</p>
 </section>
 <section class="panel">
   <h2>Đáp án đề xuất</h2>
@@ -64,7 +71,7 @@
   <p class="hint">Dữ liệu lưu trong localStorage của trình duyệt này, chưa phải SQLite và không tự đồng bộ giữa thiết bị. Hãy xuất JSON để sao lưu.</p>
 </section>
 </main>
-<footer>TLBB AI Manager V1.1 · Bản thử nghiệm · Không liên kết chính thức với nhà phát hành game</footer>
+<footer>TLBB AI Manager V1.2 · Bản thử nghiệm · Không liên kết chính thức với nhà phát hành game</footer>
 </div>
 </body>
 </html>
