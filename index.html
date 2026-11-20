@@ -4,74 +4,40 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
-<title>TLBB AI Manager V1.2</title>
+<title>TLBB AI Manager V1.3</title>
 <link rel="stylesheet" href="style.css">
 <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script defer src="app.js"></script>
 </head>
 <body>
 <div class="shell">
-<header>
-  <div class="brand"><b>武 TLBB AI Manager</b><small>LOCAL ASSISTANT · WINDOWS 10 · V1.2</small></div>
-  <button id="exportBtn">Xuất dữ liệu</button>
-</header>
+<header><div class="brand"><b>武 TLBB AI Manager</b><small>LOCAL ASSISTANT · WINDOWS 10 · V1.3 OCR VI</small></div><button id="exportBtn">Xuất dữ liệu</button></header>
 <nav><a href="#accounts">Tài khoản</a><a href="#ocr">OCR & câu hỏi</a><a href="#bank">Ngân hàng câu hỏi</a></nav>
 <main>
-<section class="hero">
-  <div><p class="eyebrow">BẢNG ĐIỀU KHIỂN</p><h1>Quản lý phiên game TLBB</h1><p>Theo dõi tối đa 15 tài khoản và tra cứu câu hỏi NPC từ dữ liệu lưu trên thiết bị.</p></div>
-  <strong class="count">15<br><small>Ô tài khoản</small></strong>
-</section>
-<section class="stats">
-  <article><span>Tổng tài khoản</span><b>15</b></article>
-  <article><span>Đang hoạt động</span><b id="activeStat">0</b></article>
-  <article><span>Câu hỏi đã lưu</span><b id="questionStat">0</b></article>
-  <article><span>OCR</span><b id="ocrStat">Sẵn sàng</b></article>
-</section>
-<section class="panel" id="accounts">
-  <h2>15 tài khoản / cửa sổ</h2><div class="account-grid" id="accountGrid"></div>
-  <p class="hint">Đánh dấu thủ công trạng thái cửa sổ. Website chưa tự điều khiển client game.</p>
-</section>
+<section class="hero"><div><p class="eyebrow">BẢNG ĐIỀU KHIỂN</p><h1>Quản lý phiên game TLBB</h1><p>Theo dõi tối đa 15 tài khoản và tra cứu câu hỏi NPC từ dữ liệu lưu trên thiết bị.</p></div><strong class="count">15<br><small>Ô tài khoản</small></strong></section>
+<section class="stats"><article><span>Tổng tài khoản</span><b>15</b></article><article><span>Đang hoạt động</span><b id="activeStat">0</b></article><article><span>Câu hỏi đã lưu</span><b id="questionStat">0</b></article><article><span>OCR</span><b id="ocrStat">Sẵn sàng</b></article></section>
+<section class="panel" id="accounts"><h2>15 tài khoản / cửa sổ</h2><div class="account-grid" id="accountGrid"></div><p class="hint">Đánh dấu thủ công trạng thái cửa sổ. Website chưa tự điều khiển client game.</p></section>
 <div class="work-grid">
 <section class="panel" id="ocr">
-  <h2>Nhận diện câu hỏi NPC (OCR) · V1.2</h2>
-  <label class="upload" for="imageInput">＋ Chọn ảnh chụp hội thoại NPC<small>PNG, JPG, WEBP · xử lý trong trình duyệt</small></label>
-  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-  <div class="preview"><img id="preview" hidden><span id="previewEmpty">Chưa chọn ảnh</span></div>
-  <div class="ocr-options">
-    <label for="ocrLang">Ngôn ngữ</label>
-    <select id="ocrLang"><option value="vie">Tiếng Việt (khuyên dùng)</option><option value="vie+eng">Tiếng Việt + English</option><option value="eng">English</option></select>
-  </div>
-  <div class="ocr-options">
-    <label for="ocrMode">Xử lý ảnh</label>
-    <select id="ocrMode"><option value="auto">Tự động thử nhiều kiểu (khuyên dùng)</option><option value="enhance">Tăng tương phản / thang xám</option><option value="threshold">Đen trắng rõ nét</option><option value="original">Ảnh gốc</option></select>
-    <label for="psmMode">Bố cục chữ</label>
-    <select id="psmMode"><option value="auto">Tự động (khuyên dùng)</option><option value="block">Một khối hội thoại</option><option value="sparse">Nhiều vùng chữ rời</option><option value="line">Một dòng chữ</option></select>
-  </div>
-  <div class="ocr-tips"><b>Mẹo chụp ảnh:</b> phóng to khung hội thoại, chụp thẳng, đủ sáng, không cắt mất dấu tiếng Việt. Nếu chữ nền tối, thử chế độ Tự động.</div>
-  <textarea id="ocrText" rows="6" placeholder="Văn bản OCR hoặc dán câu hỏi vào đây..."></textarea>
-  <div class="ocr-meta"><span id="ocrConfidence">Độ tin cậy OCR: --</span><span id="ocrDuration"></span></div>
-  <div class="actions"><button id="runOcrBtn">Chạy OCR nâng cao</button><button id="searchBtn" class="primary">Tra cứu đáp án</button></div>
-  <p id="ocrMessage" class="hint">OCR sẽ thử các cách xử lý ảnh phù hợp. Luôn kiểm tra và sửa văn bản trước khi tra cứu.</p>
+<h2>Nhận diện hội thoại NPC · OCR V1.3</h2>
+<label class="upload" for="imageInput">＋ Chọn ảnh chụp hội thoại NPC<small>PNG, JPG, WEBP · xử lý trong trình duyệt</small></label>
+<input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+<div class="preview-wrap"><div class="preview" id="previewArea"><img id="preview" hidden><div id="cropShade" hidden></div><span id="previewEmpty">Chưa chọn ảnh</span></div></div>
+<p class="hint">Có thể kéo ngón tay trên ảnh để khoanh vùng chứa chữ. Không khoanh thì OCR toàn ảnh.</p>
+<div class="ocr-options"><label for="ocrLang">Ngôn ngữ</label><select id="ocrLang"><option value="vie">Tiếng Việt có dấu (khuyên dùng)</option><option value="vie+eng">Tiếng Việt + English</option><option value="eng">English</option></select></div>
+<div class="ocr-options"><label for="ocrMode">Bộ lọc ảnh</label><select id="ocrMode"><option value="auto">Tự động thử nhiều bộ lọc</option><option value="light-on-dark">Chữ sáng / nền tối</option><option value="dark-on-light">Chữ tối / nền sáng</option><option value="original">Ảnh gốc</option></select></div>
+<div class="ocr-options"><label for="psmMode">Bố cục chữ</label><select id="psmMode"><option value="auto">Tự động thử nhiều bố cục</option><option value="block">Một khối hội thoại</option><option value="sparse">Nhiều vùng chữ rời</option><option value="line">Một dòng chữ</option></select></div>
+<div class="ocr-tips"><b>Ảnh TLBB:</b> ưu tiên ảnh chụp trực tiếp trong game, mở rõ khung hội thoại, tránh ảnh bị thu nhỏ hoặc chụp lại từ màn hình website. Bộ lọc chỉ hỗ trợ làm rõ ảnh, không thể khôi phục chữ đã mờ/mất.</div>
+<textarea id="ocrText" rows="7" placeholder="Văn bản OCR hoặc dán câu hỏi vào đây..."></textarea>
+<div class="ocr-meta"><span id="ocrConfidence">Độ tin cậy OCR: --</span><span id="ocrDuration"></span></div>
+<div class="actions"><button id="runOcrBtn">Chạy OCR V1.3</button><button id="clearCropBtn">Bỏ vùng chọn</button><button id="searchBtn" class="primary">Tra cứu đáp án</button></div>
+<p id="ocrMessage" class="hint">Ngôn ngữ mặc định: tiếng Việt có dấu. Hãy kiểm tra văn bản trước khi tra cứu.</p>
 </section>
-<section class="panel">
-  <h2>Đáp án đề xuất</h2>
-  <div id="answerEmpty" class="empty">Chưa có kết quả tra cứu.</div>
-  <div id="answerResult" hidden><p>Điểm khớp từ khóa: <b id="confidence">0%</b></p><div class="meter"><i id="meterFill"></i></div><h3 id="answerText"></h3><p id="answerNote"></p></div>
-  <hr><h3>Thêm câu hỏi</h3>
-  <input id="newQuestion" placeholder="Nội dung câu hỏi NPC">
-  <input id="newAnswer" placeholder="Đáp án đúng">
-  <input id="newNpc" placeholder="Tên NPC / sự kiện (không bắt buộc)">
-  <button id="saveQuestionBtn" class="primary full">Lưu câu hỏi</button>
-</section>
+<section class="panel"><h2>Đáp án đề xuất</h2><div id="answerEmpty" class="empty">Chưa có kết quả tra cứu.</div><div id="answerResult" hidden><p>Điểm khớp từ khóa: <b id="confidence">0%</b></p><div class="meter"><i id="meterFill"></i></div><h3 id="answerText"></h3><p id="answerNote"></p></div><hr><h3>Thêm câu hỏi</h3><input id="newQuestion" placeholder="Nội dung câu hỏi NPC"><input id="newAnswer" placeholder="Đáp án đúng"><input id="newNpc" placeholder="Tên NPC / sự kiện (không bắt buộc)"><button id="saveQuestionBtn" class="primary full">Lưu câu hỏi</button></section>
 </div>
-<section class="panel" id="bank">
-  <h2>Ngân hàng câu hỏi local</h2>
-  <div class="actions"><input id="bankSearch" placeholder="Tìm câu hỏi, đáp án hoặc NPC..."><button id="importBtn">Nhập JSON</button><input id="importFile" type="file" accept=".json,application/json" hidden></div>
-  <div id="questionList" class="question-list"></div>
-  <p class="hint">Dữ liệu lưu trong localStorage của trình duyệt này, chưa phải SQLite và không tự đồng bộ giữa thiết bị. Hãy xuất JSON để sao lưu.</p>
-</section>
+<section class="panel" id="bank"><h2>Ngân hàng câu hỏi local</h2><div class="actions"><input id="bankSearch" placeholder="Tìm câu hỏi, đáp án hoặc NPC..."><button id="importBtn">Nhập JSON</button><input id="importFile" type="file" accept=".json,application/json" hidden></div><div id="questionList" class="question-list"></div><p class="hint">Dữ liệu giữ nguyên khóa localStorage của V1.1/V1.2 trên cùng trình duyệt. Hãy xuất JSON để sao lưu.</p></section>
 </main>
-<footer>TLBB AI Manager V1.2 · Bản thử nghiệm · Không liên kết chính thức với nhà phát hành game</footer>
+<footer>TLBB AI Manager V1.3 · Bản thử nghiệm · Không liên kết chính thức với nhà phát hành game</footer>
 </div>
 </body>
 </html>
