@@ -1,21 +1,20 @@
-# TLBB AI Manager V1.2
+# TLBB AI Manager V1.3 — OCR tiếng Việt
 
-## Thay đổi OCR
-- Chọn riêng ngôn ngữ `vie`, `vie+eng` hoặc `eng`; mặc định `vie` để ưu tiên hội thoại tiếng Việt.
-- Phóng to ảnh đầu vào đến cạnh tối đa 2200 px (giới hạn hệ số phóng 3x).
-- Chế độ tự động thử nhiều bản ảnh: tăng tương phản thang xám, ngưỡng đen-trắng và ảnh gốc.
-- Thử bố cục Tesseract: một khối chữ (PSM 6) và chữ rời rạc (PSM 11).
-- Chọn kết quả theo confidence do OCR trả về, hiển thị confidence và thời gian xử lý.
-- Giới hạn ảnh đầu vào 12 MB, báo lỗi tải thư viện hoặc xử lý ảnh rõ hơn.
+## Nâng cấp
+- Mặc định bộ ngôn ngữ OCR `vie` (tiếng Việt có dấu); tùy chọn `vie+eng` hoặc `eng`.
+- Có thể kéo trên ảnh xem trước để khoanh vùng hội thoại cần đọc; bỏ vùng chọn để đọc toàn ảnh.
+- Tăng kích thước vùng ảnh nhỏ lên tối đa khoảng 4x, giới hạn số pixel để giảm nguy cơ tràn bộ nhớ trên Android.
+- Bộ lọc chữ sáng/nền tối, chữ tối/nền sáng, thang xám, tăng tương phản và làm nét nhẹ.
+- Tự thử nhiều bố cục Tesseract (PSM 6, 11, 12) và nhiều bộ lọc khi chọn Tự động.
+- Giữ nguyên khóa LocalStorage `tlbb-ai-manager-bank-v1` để không làm mất ngân hàng câu hỏi hiện có trên cùng trình duyệt.
 
-## Cài đặt
-Thay thế 4 file ở thư mục gốc nhánh `main`: `index.html`, `app.js`, `style.css`, `README.md`. Không tải ZIP lên thay cho các file này.
+## Cập nhật trên GitHub
+Thay thế 4 file tại thư mục gốc nhánh `main`: `index.html`, `app.js`, `style.css`, `README.md`.
 
-## Lưu ý
-- OCR vẫn có thể sai dấu, chữ hoa/thường, số và ký tự đặc biệt. Luôn soát văn bản trước khi tra cứu.
-- Confidence do engine OCR cung cấp không đồng nghĩa xác suất văn bản đúng.
-- Chất lượng phụ thuộc độ phân giải ảnh, font trong game, độ tương phản, hiệu ứng nền và ngôn ngữ.
-- Tesseract.js và dữ liệu ngôn ngữ được tải từ CDN; cần Internet. Lần chạy đầu có thể tải dữ liệu lâu.
-- Dữ liệu câu hỏi tiếp tục dùng khóa localStorage `tlbb-ai-manager-bank-v1` để giữ dữ liệu V1.1 trên cùng trình duyệt/nguồn website.
-- Chưa có AI trả lời câu hỏi mới; chưa có SQLite; chưa đồng bộ dữ liệu.
-- 15 ô tài khoản chỉ đánh dấu thủ công, chưa điều khiển client game.
+## Lưu ý kỹ thuật
+- Cần Internet để tải Tesseract.js và dữ liệu ngôn ngữ `vie` từ CDN. Lần chạy đầu có thể tải lâu.
+- OCR không thể khôi phục chi tiết chữ đã mờ, bị che, bị nén mạnh hoặc có độ phân giải quá thấp.
+- Confidence là điểm do engine cung cấp, không phải xác suất chính xác tuyệt đối.
+- Nên dùng ảnh chụp trực tiếp từ game, không dùng ảnh chụp lại giao diện OCR.
+- Đây là bản thử nghiệm; chưa xác minh độ chính xác trên mọi font TLBB. Cần ảnh game gốc để tinh chỉnh thêm.
+- 15 ô tài khoản chỉ là trạng thái đánh dấu thủ công; không tự điều khiển client game.
