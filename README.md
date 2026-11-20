@@ -1,25 +1,20 @@
-# TLBB AI Manager — bản prototype
+# TLBB AI Manager V1.1
 
-## Đưa lên GitHub Pages
-1. Trong repository, mở **Add file → Upload files**.
-2. Tải lên 4 tệp trong gói này: `index.html`, `style.css`, `app.js`, `README.md`.
-3. Nhập thông điệp commit, chọn **Commit changes**.
-4. Mở **Settings → Pages**.
-5. Chọn **Deploy from a branch**, branch `main`, folder `/(root)`, nhấn **Save**.
-6. Đợi GitHub Pages triển khai rồi mở URL hiển thị tại trang Pages.
+## Cập nhật
+- Giữ giao diện quản lý 15 ô tài khoản và ngân hàng câu hỏi.
+- OCR sử dụng Tesseract.js với lựa chọn tiếng Việt + tiếng Anh, tiếng Việt hoặc tiếng Anh.
+- Có tùy chọn phóng to, chuyển ảnh sang thang xám và tăng tương phản trước OCR.
+- Cải thiện so khớp câu hỏi bằng điểm Dice/độ bao phủ từ khóa sau chuẩn hóa dấu tiếng Việt.
+- Nhập/xuất ngân hàng câu hỏi JSON.
 
-## Tính năng
-- Bảng 15 ô tài khoản; trạng thái được đánh dấu thủ công.
-- OCR ảnh tiếng Việt/Anh bằng Tesseract.js trong trình duyệt.
-- Tra cứu câu hỏi gần đúng theo từ khóa.
-- Thêm, tìm, xóa, nhập và xuất ngân hàng câu hỏi JSON.
+## Cài đặt GitHub Pages
+Tải lên và thay thế các file `index.html`, `style.css`, `app.js`, `README.md` tại thư mục gốc của nhánh `main`, sau đó Commit changes. GitHub Pages cần cấu hình branch `main` và folder `/(root)`.
 
-## Giới hạn
-- Đây là website prototype, không phải ứng dụng Windows native.
-- Không tự động điều khiển 15 cửa sổ game, không tự đăng nhập, gửi phím, click NPC hoặc vượt CAPTCHA.
-- OCR cần tải thư viện và dữ liệu ngôn ngữ từ CDN; cần Internet.
-- Ngân hàng câu hỏi hiện lưu bằng `localStorage`, **chưa phải SQLite** và không tự đồng bộ giữa các trình duyệt/máy. Hãy xuất JSON để sao lưu.
-- Điểm khớp là độ tương đồng từ khóa, không phải xác suất đáp án đúng.
-- Kiểm tra lại văn bản OCR trước khi dùng đáp án.
-
-Không liên kết chính thức với nhà phát hành Thiên Long Bát Bộ.
+## Lưu ý quan trọng
+- Đây vẫn là prototype chạy trong trình duyệt, không phải ứng dụng Windows native.
+- OCR tải Tesseract.js và dữ liệu ngôn ngữ từ CDN, cần Internet.
+- OCR có thể nhận sai; hãy kiểm tra văn bản trước khi tra cứu.
+- Điểm tương đồng là điểm so khớp văn bản, không phải xác suất đáp án đúng.
+- Dữ liệu vẫn lưu trong localStorage của trình duyệt; chưa phải SQLite và không tự đồng bộ giữa thiết bị.
+- 15 ô tài khoản chỉ đánh dấu thủ công, chưa kết nối hoặc điều khiển client game.
+- Chưa tích hợp dịch vụ AI bên ngoài; không nhập API key bí mật vào mã nguồn công khai.
